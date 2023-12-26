@@ -2,6 +2,10 @@
 require 'lib/init.php';
 
 $action = isset($_POST['action']) ? $_POST['action'] : (isset($_GET['action']) ? $_GET['action'] : '');
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'];
+$homeUrl = $protocol . '://' . $host;
+$returnUrl = $homeUrl . $_SERVER['REQUEST_URI'];
 
 // manually set action for paypal recurring payments return
 if (empty($action) && isset($_GET['auth'])) {
@@ -63,6 +67,7 @@ if (!empty($action)) {
 							'confirmation_method' => 'manual',
 							'confirm' => true,
 							'description' => $json_obj->description,
+							'return_url' => $returnUrl
 						]);
 					}
 					if (isset($json_obj->payment_intent_id)) {
