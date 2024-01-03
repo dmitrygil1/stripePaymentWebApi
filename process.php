@@ -3,7 +3,7 @@ require 'lib/init.php';
 
 $action = isset($_POST['action']) ? $_POST['action'] : (isset($_GET['action']) ? $_GET['action'] : '');
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
-$host = $_SERVER['HTTP_HOST'];
+$host = gethostname();
 $homeUrl = $protocol . '://' . $host;
 $returnUrl = $homeUrl . $_SERVER['REQUEST_URI'];
 
@@ -70,11 +70,18 @@ if (!empty($action)) {
 							'return_url' => $returnUrl
 						]);
 					}
-					if (isset($json_obj->payment_intent_id)) {
+					if (isset($intent->id)) {
 						$intent = \Stripe\PaymentIntent::retrieve(
-							$json_obj->payment_intent_id
+                            $intent->id
 						);
-						$intent->confirm();
+                        //TODO: Отладить данную функцию (confirm)
+						$intent->confirm(
+                            $intent->id,
+                            [
+                                'payment_method' => $intent->payment_method,
+                                'return_url' => $returnUrl,
+                            ]
+                        );
 
 						$payment = Model::factory('Payment')->create();
 						$payment->invoice_id = ($intent->invoice) ? $intent->invoice : null;
